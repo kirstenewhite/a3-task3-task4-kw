@@ -1,0 +1,69 @@
+---
+title: "as_task4_kirsten_white"
+author: "Kirsten White"
+date: "10/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(here)
+library(janitor)
+library(lubridate)
+library(kableExtra)
+```
+
+### Read in the Data
+```{r}
+urchins_data <- read_csv(here("data", "urchins.csv")) %>%
+  clean_names()
+```
+# **Section 1 - Purple Urchin Mean Size in Naples Reef 2010**
+
+### Data Wrangling 
+
+Data is filtered to include observations for only Purple Urchins collected at the Naples Reef site in 2010
+
+```{r}
+purple_urchins_size_napl_10 <- urchins_data %>%
+  mutate(date = mdy(date)) %>%
+  mutate(year = year(date)) %>%
+  filter(common_name == "Purple Urchin", site == "NAPL", year == 2010)
+
+# ------ mdy not converting date to "date" class -----
+```
+
+### Data Visualization 
+
+Histogram and QQ-plots are created for the size distribution of purple urchins at Naples Reef in 2010 separated by treatment (control and annual) in order to assess normality 
+
+```{r}
+ggplot(data = purple_urchins_size_napl_10, aes(x = size))+
+  geom_histogram(color = "black", fill = "purple")+
+  facet_wrap(~ treatment) +
+  labs(x = "Diameter (cm)",
+       y = "Urchin Count", 
+       title = "Total Purple Urchin Count at Naples Reef in 2010") +
+  theme(plot.title = element_text(face = "bold"))
+```
+
+------ Add 1-2 sentences on main takeaways on the distribution of purp urchin sizes for each treatment (distribution, comparisons, patterns) -------
+
+### Summary Table 
+
+```{r}
+purple_urchins_size_napl_10_summary <- purple_urchins_size_napl_10 %>%
+  group_by(treatment) %>%
+  summarize(mean_size = mean(size), 
+            sd_size = sd(size),
+            sample_size = n())
+ 
+      
+```
+
+ kbl(caption = "Table 1: Summary Statistics of Purple Urchins Collected from Naples Reef, 2010", 
+      col.names = c("Treatment Type", "Mean (cm)", "Standard Deviation", "Median (cm)", "Sample Size (n)")) %>%
+  kable_minimal()
+

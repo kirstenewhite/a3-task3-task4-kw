@@ -7,6 +7,10 @@ output: html_document
 
 # **Introduction** 
 
+In this code, sea urchin data describing the size frequency distribution of red and purple sea urchins collected from 5 long-term kelp removal sites along the Santa Barbara coast (Naples Reef, Arroyo Quemado Reef, Carpinteria Reef, Mohawk Reef, and Isla Vista Reef) is wrangled and visualized. 
+
+**Data Citation**: Reed, D. 2020. SBC LTER: Reef: Long-term experiment: Kelp removal: Urchin size frequency distribution ver 20. Environmental Data Initiative. https://doi.org/10.6073/pasta/5a1e9ef03aa47bd2225c0bb98a02a63b
+
 ## Setup 
 ```{r setup, include= TRUE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
@@ -59,12 +63,12 @@ urchins_by_size_summary <- urchins_by_size %>%
             sd_size = sd(size), 
             sample_size = n()) %>%
   kbl(caption = "Table 1: Summary Statistics of Urchin Sizes", 
-      col.names = c("Common Name", "Mean (cm)", "Median (cm)", "Standard Deviation", "Sample Size")) %>%
+      col.names = c("Common Name", "Mean (cm)", "Median (cm)", "Standard Deviation", "Sample Size"), 
+      digits = 2) %>%
   kable_minimal()
 
 urchins_by_size_summary
 
-# ----- Need to edit sig figs -----
 ```
 The mean size of purple urchins is 65% (2.31 cm) smaller than the mean red urchin size. The standard deviation of the purple urchins is smaller and the distribution is narrower - centralized around 5 cm. Red urchin standard deviation is larger and the distribution is more spread out. 
 
