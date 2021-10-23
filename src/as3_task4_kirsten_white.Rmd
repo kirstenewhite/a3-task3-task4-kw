@@ -58,8 +58,12 @@ purple_urchins_size_napl_10_summary <- purple_urchins_size_napl_10 %>%
   group_by(treatment) %>%
   summarize(mean_size = mean(size), 
             sd_size = sd(size),
-            sample_size = n())
- 
+            sample_size = n()) %>%
+  kbl(caption = "Table 1: Summary statistics of Purple Urchins collected from Naples Reef, 2010", 
+      col.names = c("Treatment Type", "Mean (cm)", "Standard Deviation", "Sample Size (n)"), 
+      digits = 2)
+
+ purple_urchins_size_napl_10_summary
       
 ```
 
