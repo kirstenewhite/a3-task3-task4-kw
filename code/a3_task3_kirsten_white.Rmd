@@ -1,0 +1,111 @@
+---
+title: "Kirsten White - Assignment 3, Task 3"
+author: "Kirsten White"
+date: "10/23/2021"
+output: html_document
+---
+
+# **Introduction** 
+
+## Setup 
+```{r setup, include= TRUE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(tidyverse)
+library(here)
+library(kableExtra)
+library(janitor)
+library(lubridate)
+```
+
+## Read in the Data
+```{r}
+urchins_data <- read_csv(here("data", "urchins.csv")) %>%
+  clean_names()
+```
+# **Section 1 - Urchin Size Comparison** 
+In this section, sizes of both purple and red urchins are compared and visualized 
+
+### Size Comparison Visualization 
+```{r}
+# Select size and urchin type columns 
+urchins_by_size <- urchins_data %>%
+  select(size, common_name)
+
+# Plot size by urchin type on a histogram 
+ggplot(data = urchins_by_size, aes(x = size))+
+  geom_histogram(color = "black", fill = "purple") +
+  aes(color = common_name) +
+  facet_wrap(~ common_name) +
+  labs(x = "Size in Diameter (cm)", 
+       y = "Number of Urchins", 
+       color = "Urchin Type",
+       title = "Red & Purple Urchin Size Distribution (WHITE)", 
+       caption = "Figure 1: Diameter (in cm) of purple and red urchins measured from 5 sites along the Santa Barbara coast") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+ 
+# ----- Need to change colors for RED -------
+```
+
+### Urchin Size Comparison Statistics 
+Below is a summary table containing the mean, median, standard deviation, and sample size statistics for purple and red urchins
+
+
+```{r}
+urchins_by_size_summary <- urchins_by_size %>%
+  group_by(common_name) %>%
+  summarize(mean_size = mean(size), 
+            median_size = median(size), 
+            sd_size = sd(size), 
+            sample_size = n()) %>%
+  kbl(caption = "Table 1: Summary Statistics of Urchin Sizes", 
+      col.names = c("Common Name", "Mean (cm)", "Median (cm)", "Standard Deviation", "Sample Size")) %>%
+  kable_minimal()
+
+urchins_by_size_summary
+
+# ----- Need to edit sig figs -----
+```
+The mean size of purple urchins is 65% (2.31 cm) smaller than the mean red urchin size. The standard deviation of the purple urchins is smaller and the distribution is narrower - centralized around 5 cm. Red urchin standard deviation is larger and the distribution is more spread out. 
+
+# **Section 2 - Purple Urchin Counts by Site and Year**
+
+```{r}
+# Create a subset of the urchins data `purple_urchins` including observations only for purple urchins with a new column containing the year and a new column containing the full site name 
+
+purple_urchins <- urchins_data %>%
+  filter(common_name == "Purple Urchin") %>%
+  mutate(date_new = mdy(date)) %>%
+  mutate(year = year(date_new)) %>%
+  mutate(site_full = case_when(
+    site %in% c("NAPL") ~ "Naples Reef", 
+    site %in% c("AQUE") ~ "Arroyo Quemado Reef", 
+    site %in% c("CARP") ~ "Carpinteria Reef", 
+    site %in% c("MOHK") ~ "Mohawk Reef", 
+    site %in% c("IVEE") ~ "Isla Vista Reef"
+  ))
+```
+
+```{r}
+# Create a table containing the total number of purple urchins observed by site and year 
+
+purple_urchin_count <- purple_urchins %>%
+  group_by(site_full, year) %>%
+  summarize(sample_size = n())
+```
+
+```{r}
+# Graph the counts of purple urchins recorded at each site 
+ggplot(data = purple_urchin_count, aes(x = year, y = sample_size)) +
+  geom_bar(stat = "identity") +
+  aes(fill = site_full) +
+  labs(x = "Year", 
+       y = "Sample Size", 
+       title = "Total Purple Urchin Counts per Site", 
+       fill = "Site Name", 
+       caption = "Figure 2: Total counts of purple urchins by site in Santa Barbara per year recorded (2008-2020")+
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+```
+ ----- finish analysis paragraph -----
+ 
+In Figure 2 (above), one major difference noted is the sample sizes. From 2009-2012, around 4,000 purple urchin samples are taken. However, in the remaining years, 2013-2020, the sample size is significantly smaller around 2,000 purple urchins. As a result, 
