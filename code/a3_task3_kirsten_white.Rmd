@@ -11,10 +11,11 @@ In this code, sea urchin data describing the size frequency distribution of red 
 
 **Data Citation**: Reed, D. 2020. SBC LTER: Reef: Long-term experiment: Kelp removal: Urchin size frequency distribution ver 20. Environmental Data Initiative. https://doi.org/10.6073/pasta/5a1e9ef03aa47bd2225c0bb98a02a63b
 
-## Setup 
+### Setup 
 ```{r setup, include= TRUE, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
+# --- Attach Packages ---
 library(tidyverse)
 library(here)
 library(kableExtra)
@@ -22,15 +23,16 @@ library(janitor)
 library(lubridate)
 ```
 
-## Read in the Data
+### Read in the Data
 ```{r}
+# --- Read in urchins data ---
 urchins_data <- read_csv(here("data", "urchins.csv")) %>%
   clean_names()
 ```
 # **Section 1 - Urchin Size Comparison** 
 In this section, sizes of both purple and red urchins are compared and visualized 
 
-### Size Comparison Visualization 
+### **Data Visualization** 
 ```{r}
 # Select size and urchin type columns 
 urchins_by_size <- urchins_data %>%
@@ -38,61 +40,66 @@ urchins_by_size <- urchins_data %>%
 
 # Plot size by urchin type on a histogram 
 ggplot(data = urchins_by_size, aes(x = size))+
-  geom_histogram(color = "black", fill = "purple") +
-  aes(color = common_name) +
+  geom_histogram(color = "black", fill = "skyblue", bins = 10) +
+  aes(fill= common_name) +
   facet_wrap(~ common_name) +
   labs(x = "Size in Diameter (cm)", 
        y = "Number of Urchins", 
        color = "Urchin Type",
+       fill = "Urchin Type",
        title = "Red & Purple Urchin Size Distribution (WHITE)", 
        caption = "Figure 1: Diameter (in cm) of purple and red urchins measured from 5 sites along the Santa Barbara coast") +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+  
+# Title and caption text alignment, size, and boldness are adjusted
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))+
+  theme(plot.caption = element_text(hjust = 1, size = 7))
  
-# ----- Need to change colors for RED -------
 ```
 
-### Urchin Size Comparison Statistics 
+### **Urchin Size Comparison Statistics** 
 Below is a summary table containing the mean, median, standard deviation, and sample size statistics for purple and red urchins
 
 
 ```{r}
+# Summary table is created by first grouping urchin type then   summarizing mean, median, standard deviation, counting sample size
 urchins_by_size_summary <- urchins_by_size %>%
   group_by(common_name) %>%
   summarize(mean_size = mean(size), 
             median_size = median(size), 
             sd_size = sd(size), 
             sample_size = n()) %>%
+  
+# A table caption is created, column names assigned, and one significant digits selected 
   kbl(caption = "Table 1: Summary Statistics of Urchin Sizes", 
-      col.names = c("Common Name", "Mean (cm)", "Median (cm)", "Standard Deviation", "Sample Size"), 
-      digits = 2) %>%
+      col.names = c("Common Name", "Mean (cm)", "Median (cm)", "Standard Deviation (cm)", "Sample Size"), 
+      digits = 1) %>%
   kable_minimal()
 
 urchins_by_size_summary
 
 ```
-The mean size of purple urchins is 65% (2.31 cm) smaller than the mean red urchin size. The standard deviation of the purple urchins is smaller and the distribution is narrower - centralized around 5 cm. Red urchin standard deviation is larger and the distribution is more spread out. 
+
+**Table 1** indicates a lower central tendency for the purple urchins (4.5 cm mean, 4.5 cm) than the red urchins (6.8 mean, 7.0 median). Standard deviation of the purple urchins is smaller and more centralized around the mean. Conversely, red urchin standard deviation is larger and the distribution is more spread out from the mean. 
 
 # **Section 2 - Purple Urchin Counts by Site and Year**
 
 ```{r}
 # Create a subset of the urchins data `purple_urchins` including observations only for purple urchins with a new column containing the year and a new column containing the full site name 
-
 purple_urchins <- urchins_data %>%
   filter(common_name == "Purple Urchin") %>%
   mutate(date_new = mdy(date)) %>%
   mutate(year = year(date_new)) %>%
   mutate(site_full = case_when(
-    site %in% c("NAPL") ~ "Naples Reef", 
-    site %in% c("AQUE") ~ "Arroyo Quemado Reef", 
-    site %in% c("CARP") ~ "Carpinteria Reef", 
-    site %in% c("MOHK") ~ "Mohawk Reef", 
-    site %in% c("IVEE") ~ "Isla Vista Reef"
+    site == "NAPL" ~ "Naples Reef", 
+    site == "AQUE" ~ "Arroyo Quemado Reef", 
+    site == "CARP" ~ "Carpinteria Reef", 
+    site == "MOHK" ~ "Mohawk Reef", 
+    site == "IVEE" ~ "Isla Vista Reef"
   ))
 ```
 
 ```{r}
 # Create a table containing the total number of purple urchins observed by site and year 
-
 purple_urchin_count <- purple_urchins %>%
   group_by(site_full, year) %>%
   summarize(sample_size = n())
@@ -101,15 +108,17 @@ purple_urchin_count <- purple_urchins %>%
 ```{r}
 # Graph the counts of purple urchins recorded at each site 
 ggplot(data = purple_urchin_count, aes(x = year, y = sample_size)) +
-  geom_bar(stat = "identity") +
-  aes(fill = site_full) +
+  geom_line(stat = "identity") +
+  aes(color = site_full) +
   labs(x = "Year", 
        y = "Sample Size", 
-       title = "Total Purple Urchin Counts per Site", 
-       fill = "Site Name", 
-       caption = "Figure 2: Total counts of purple urchins by site in Santa Barbara per year recorded (2008-2020")+
-  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+       title = "Total Purple Urchin Counts per Site 2008-2020 (WHITE)", 
+       color = "Site Name", 
+       caption = "Figure 2: Total counts of purple urchins by site in Santa Barbara per year recorded (2008-2020)")+
+  theme(plot.title = element_text(hjust = 0.5, size = 12, face = "bold"))+
+  theme(plot.caption = element_text(hjust = 0.5, size = 7))+
+  theme_grey()
 ```
  ----- finish analysis paragraph -----
  
-In Figure 2 (above), one major difference noted is the sample sizes. From 2009-2012, around 4,000 purple urchin samples are taken. However, in the remaining years, 2013-2020, the sample size is significantly smaller around 2,000 purple urchins. As a result, 
+In Figure 2, the purple urchin population appears to steadily decrease from 2009 to 2020. However, 

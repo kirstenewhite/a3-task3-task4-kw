@@ -5,8 +5,14 @@ date: "10/23/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+# **Introduction** 
+
+In this code, size distribution data on purple sea urchins collected from Naples Reef kelp removal site in 2010 is wrangled and visualized. 
+
+**Data Citation**: Reed, D. 2020. SBC LTER: Reef: Long-term experiment: Kelp removal: Urchin size frequency distribution ver 20. Environmental Data Initiative. https://doi.org/10.6073/pasta/5a1e9ef03aa47bd2225c0bb98a02a63b
+
+```{r setup, include= TRUE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 library(tidyverse)
 library(here)
@@ -27,29 +33,45 @@ urchins_data <- read_csv(here("data", "urchins.csv")) %>%
 Data is filtered to include observations for only Purple Urchins collected at the Naples Reef site in 2010
 
 ```{r}
+# Create new data frame. Update date column to read dates in month-day-year format. Create a new column including only the year. Then filter only for observations including purple urchins, naples reef site, and the year 2010
+
 purple_urchins_size_napl_10 <- urchins_data %>%
   mutate(date = mdy(date)) %>%
+  
+# Check class in console with: class(purple_urchins_size_napl_10$date)
+
   mutate(year = year(date)) %>%
   filter(common_name == "Purple Urchin", site == "NAPL", year == 2010)
 
-# ------ mdy not converting date to "date" class -----
 ```
 
 ### Data Visualization 
 
 Histogram and QQ-plots are created for the size distribution of purple urchins at Naples Reef in 2010 separated by treatment (control and annual) in order to assess normality 
 
+#### Exploratory histogram 
 ```{r}
+#
 ggplot(data = purple_urchins_size_napl_10, aes(x = size))+
   geom_histogram(color = "black", fill = "purple")+
   facet_wrap(~ treatment) +
   labs(x = "Diameter (cm)",
        y = "Urchin Count", 
-       title = "Total Purple Urchin Count at Naples Reef in 2010") +
+       title = "Total Purple Urchin Count at Naples Reef in 2010 (WHITE)", 
+       caption = "Figure 1: Number of purple urchins counted at Naples Reef in 2010 displayed by diameter") +
   theme(plot.title = element_text(face = "bold"))
 ```
+------ Need to make a QQ plot ???? ------
 
------- Add 1-2 sentences on main takeaways on the distribution of purp urchin sizes for each treatment (distribution, comparisons, patterns) -------
+------ Add 1-2 sentences on main takeaways on the distribution of purp urchin sizes for each treatment (distribution, comparisons, patterns)
+
+Figure 1 indicates a lower central tendency in diameter of the purple urchins measured in the annual treatment group - skewing closer to 3 cm. Control group purple urchins appear more evenly distributed around a diameter of 4 cm. 
+
+#### Exploratory QQ-Plot 
+
+```{r}
+qqnorm(purple_urchins_size_napl_10$size)
+```
 
 ### Summary Table 
 
@@ -57,17 +79,17 @@ ggplot(data = purple_urchins_size_napl_10, aes(x = size))+
 purple_urchins_size_napl_10_summary <- purple_urchins_size_napl_10 %>%
   group_by(treatment) %>%
   summarize(mean_size = mean(size), 
+            median_size = median(size),
             sd_size = sd(size),
             sample_size = n()) %>%
   kbl(caption = "Table 1: Summary statistics of Purple Urchins collected from Naples Reef, 2010", 
-      col.names = c("Treatment Type", "Mean (cm)", "Standard Deviation", "Sample Size (n)"), 
-      digits = 2)
+      col.names = c("Treatment Type", "Mean (cm)", "Median (cm)", "Standard Deviation", "Sample Size (n)"), 
+      digits = 1) %>%
+  kable_minimal()
 
  purple_urchins_size_napl_10_summary
       
 ```
 
- kbl(caption = "Table 1: Summary Statistics of Purple Urchins Collected from Naples Reef, 2010", 
-      col.names = c("Treatment Type", "Mean (cm)", "Standard Deviation", "Median (cm)", "Sample Size (n)")) %>%
-  kable_minimal()
-
+ 
+Table 1 shows a lower central tendency for the purple urchins under annual treatment (3.7 cm mean, 3.5 cm median) than the control treatment purple urchins (3.9 mean, 4.0 median). However, standard deviation is equal for both treatment types indicating similar distribution in both cases.
